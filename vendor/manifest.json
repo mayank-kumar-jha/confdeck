@@ -1,0 +1,30 @@
+[
+  {
+    "url": "https://github.com/bluenviron/mediamtx/releases/download/v1.21.3/mediamtx_v1.21.3_windows_amd64.zip",
+    "sha256": "b2f5246b07cb72961df03b8d5e8cad43dc657bcf3f49a87bb031bdf22721af74"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js",
+    "file": "confdeck\\static\\vendor\\hls.min.js",
+    "sha256": "7c47cd97d7a6e7b98d9623dd8ed9a6d45af4be4085e0c2001cd7175c2b4cfb07"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/hls.js@1.6.13/LICENSE",
+    "file": "confdeck\\static\\vendor\\HLS-LICENSE",
+    "sha256": "ca8773cf798c7ed997d4dd7c8e23c348699f8d5b7462636694cc14de6cda12db"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.2.8/files/inter-latin-wght-normal.woff2",
+    "file": "confdeck\\static\\vendor\\inter.woff2",
+    "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/rsms/inter/master/LICENSE.txt",
+    "file": "confdeck\\static\\vendor\\FONT-LICENSE",
+    "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+  },
+  {
+    "url": "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip",
+    "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba"
+  }
+]

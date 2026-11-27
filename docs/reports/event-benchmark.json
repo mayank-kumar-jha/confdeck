@@ -1,0 +1,7 @@
+{
+  "event_ms_median": 0.1255,
+  "event_ms_p95": 0.46120999999999984,
+  "event_ms_max": 20.2656,
+  "events": 1680,
+  "scope": "synthetic two-seat tracker; Python on this host; no hardware or UI"
+}

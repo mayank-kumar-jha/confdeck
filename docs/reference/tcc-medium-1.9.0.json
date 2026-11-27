@@ -1,0 +1,3576 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SSCv2 Schema for TCCM",
+    "version": "1.9"
+  },
+  "servers": [
+    {
+      "url": "https://{deviceIP}:443",
+      "variables": {
+        "deviceIP": {
+          "default": ""
+        }
+      }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "basicAuthInitialSennheiser": {
+        "type": "http",
+        "scheme": "basic"
+      },
+      "basicAuthControlSennheiser": {
+        "type": "http",
+        "scheme": "basic"
+      },
+      "basicAuthApi": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  },
+  "security": [
+    {
+      "basicAuthInitialSennheiser": []
+    },
+    {
+      "basicAuthControlSennheiser": []
+    },
+    {
+      "basicAuthApi": []
+    }
+  ],
+  "paths": {
+    "/api/ssc/version": {
+      "get": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Get the schema version",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "protocol": {
+                      "type": "string",
+                      "example": "2.2",
+                      "description": "The version of SSC protocol."
+                    },
+                    "schema": {
+                      "type": "string",
+                      "example": "1.0",
+                      "description": "This is the schema version of the API of the TCC M device. Semantic versioning must be used. So additional paths or properties will increase the minor number while breaking changes increase the integer part before the decimal point."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/ssc/schema": {
+      "get": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Get the address tree",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/openapi+json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/ssc/state/subscriptions": {
+      "get": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Start a subscription",
+        "description": "Start a subscription. A successful request returns a UUID that can be used to manage the created subscription. The ``/ssc/state`` address is specific to the session between client and server. This means that it is possible that different clients subscribe the same command with different arguments hence the immediate reply as well as the resulting state of the server will differ for each client respectively. This also means, that there can be only a limited number of sessions per client and user. Instead of generating new subscriptions the \"old\" subscription should be altered.",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation returning the UUID to manage this subscription and the initial Server Side Event (SSE) stream",
+            "headers": {
+              "Content-Location": {
+                "description": "UUID of the just created subscription return in the Location Field of the HTTP response header",
+                "schema": {
+                  "type": "string",
+                  "example": "31875a94-29e6-4fb0-ab4d-7f0bbd6e1bc8"
+                }
+              }
+            },
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "An initial stream (almost like a text file).",
+                  "example": "event:open\\ndata:{\"path\":\"/api/ssc/state/subscriptions/31875a94-29e6-4fb0-ab4d-7f0bbd6e1bc8\",\"sessionUUID\":\"31875a94-29e6-4fb0-ab4d-7f0bbd6e1bc8\"\\n\\n"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/ssc/state/subscriptions/{sessionUUID}": {
+      "get": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Get the subscription list",
+        "description": "Get the list of subscriptions associated with the sessionUUID",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionUUID",
+            "schema": {
+              "type": "string",
+              "example": "31875a94-29e6-4fb0-ab4d-7f0bbd6e1bc8"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": [
+                    "/device/site",
+                    "/device/identification"
+                  ],
+                  "items": {
+                    "type": "string",
+                    "example": "/device/site"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Set or change the list of subscriptions associated with the sessionUUID",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionUUID",
+            "schema": {
+              "type": "string",
+              "example": "31875a94-29e6-4fb0-ab4d-7f0bbd6e1bc8"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": [
+                  "/device/site",
+                  "/device/identification",
+                  "/device/state"
+                ],
+                "items": {
+                  "type": "string",
+                  "example": "/device/site"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "End an existing subscription",
+        "description": "End the subscription associated with the sessionUUID",
+        "tags": [
+          "SSC"
+        ],
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionUUID",
+            "schema": {
+              "type": "string",
+              "example": "31875a94-29e6-4fb0-ab4d-7f0bbd6e1bc8"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/ssc/state/subscriptions/{sessionUUID}/add": {
+      "put": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Add resource(s) to the subscription list",
+        "description": "Add a set of resources to the list of subscriptions associated with the sessionUUID",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionUUID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": [
+                  "/device/site",
+                  "/device/identification"
+                ],
+                "items": {
+                  "type": "string",
+                  "example": "/device/site"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "The request to add to the subscription was invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "example": "/api/ssc/invalid"
+                    },
+                    "error": {
+                      "type": "integer",
+                      "example": 404
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/ssc/state/subscriptions/{sessionUUID}/remove": {
+      "put": {
+        "tags": [
+          "SSC"
+        ],
+        "summary": "Remove resource(s) from the subscription list",
+        "description": "Remove a set of resources from the list of subscriptions associated with the sessionUUID",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sessionUUID",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": "/api/device/site"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "The request to remove to the subscription was invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "example": "/api/ssc/version"
+                    },
+                    "error": {
+                      "type": "integer",
+                      "example": 404
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/identity": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Get the device identity",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "product": {
+                      "type": "string",
+                      "example": "TCCM",
+                      "enum": [
+                        "TCCM"
+                      ]
+                    },
+                    "hardwareRevision": {
+                      "type": "string",
+                      "example": "1",
+                      "enum": [
+                        "1"
+                      ]
+                    },
+                    "serial": {
+                      "type": "string",
+                      "example": "1023456789"
+                    },
+                    "vendor": {
+                      "type": "string",
+                      "example": "Sennheiser electronic GmbH & Co. KG",
+                      "enum": [
+                        "Sennheiser electronic GmbH & Co. KG"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/identification": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Get the state of device identification",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "visual": {
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Set the state of device identification",
+        "security": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visual": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "409": {
+            "description": "Conflict. Activating identification was not possible because of internal device state."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/site": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Get the device site information",
+        "security": [
+          {
+            "basicAuthInitialSennheiser": []
+          },
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deviceName": {
+                      "type": "string",
+                      "default": "TCCM"
+                    },
+                    "location": {
+                      "type": "string",
+                      "default": "Room"
+                    },
+                    "position": {
+                      "type": "string",
+                      "default": "over central table"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/state": {
+      "get": {
+        "summary": "Get the device state",
+        "tags": [
+          "Device"
+        ],
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "default": "Normal",
+                      "enum": [
+                        "Normal",
+                        "Identifying",
+                        "FirmwareUpdate"
+                      ]
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "default": [],
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/firmware/update/state": {
+      "get": {
+        "tags": [
+          "Firmware Update"
+        ],
+        "summary": "Get the state of a firmware update",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deviceVersion": {
+                      "type": "string",
+                      "description": "The firmware version of the system running at the moment."
+                    },
+                    "danteVersion": {
+                      "type": "string",
+                      "description": "The Dante firmware version of the system running at the moment."
+                    },
+                    "state": {
+                      "type": "string",
+                      "default": "Idle",
+                      "enum": [
+                        "Updating",
+                        "Idle"
+                      ]
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "format": "uint8",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "default": 0,
+                      "description": "Progress in percent"
+                    },
+                    "lastStatus": {
+                      "type": "string",
+                      "default": "None",
+                      "description": "Value is reset to None after reboot and on every start of FW update",
+                      "enum": [
+                        "None",
+                        "ChecksumError"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/outputs/global/mute": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the mute status of the device",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Mute all audio outputs",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/beam": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current beam settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "installationType": {
+                      "type": "string",
+                      "enum": [
+                        "FlushMounted",
+                        "SurfaceMounted",
+                        "Suspended"
+                      ],
+                      "default": "FlushMounted",
+                      "description": "The audio signal will be optimized for the chosen installation type."
+                    },
+                    "sourceDetectionThreshold": {
+                      "type": "string",
+                      "enum": [
+                        "QuietRoom",
+                        "NormalRoom",
+                        "LoudRoom"
+                      ],
+                      "default": "NormalRoom",
+                      "description": "Threshold for detecting the speaker depending on the room noise level."
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 330,
+                      "multipleOf": 30,
+                      "default": 0,
+                      "description": "Offset to the beam's azimuth angle. This will affect the beam metering and zone settings."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current beam settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "installationType": {
+                    "type": "string",
+                    "enum": [
+                      "FlushMounted",
+                      "SurfaceMounted",
+                      "Suspended"
+                    ],
+                    "example": "FlushMounted",
+                    "description": "The audio signal will be optimized for the chosen installation type."
+                  },
+                  "sourceDetectionThreshold": {
+                    "type": "string",
+                    "enum": [
+                      "QuietRoom",
+                      "NormalRoom",
+                      "LoudRoom"
+                    ],
+                    "example": "NormalRoom",
+                    "description": "Threshold for detecting the speaker depending on the room noise level."
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 330,
+                    "multipleOf": 30,
+                    "description": "Offset to the beam's azimuth angle. This will affect `/audio/metering/beamDirection` and zone settings."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable payload (e.g. offset not a multiple of 30)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/beam/direction": {
+      "get": {
+        "tags": [
+          "Audio",
+          "FastResource"
+        ],
+        "summary": "Get the current direction of the beam",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "azimuth": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 360,
+                      "description": "Angle in degrees"
+                    },
+                    "elevation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 90,
+                      "description": "Angle in degrees"
+                    },
+                    "beamFreezeActive": {
+                      "type": "boolean",
+                      "description": "Indicates whether the beam is in beam-freeze, hence farend activity is recognized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/level": {
+      "get": {
+        "tags": [
+          "Audio",
+          "FastResource"
+        ],
+        "summary": "Get the current microphone input level",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "peak": {
+                      "type": "integer",
+                      "description": "Microphone peak level in dB",
+                      "minimum": -90,
+                      "maximum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/reference/level": {
+      "get": {
+        "tags": [
+          "Audio",
+          "FastResource"
+        ],
+        "summary": "Get the current level of the digital reference input",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rms": {
+                      "type": "integer",
+                      "description": "RMS level in dBfs of the digital reference input",
+                      "minimum": -120,
+                      "maximum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/roomInUse": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current room in use state",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "active": {
+                      "type": "boolean",
+                      "description": "Indication whether the room is considered to be in use"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/roomInUse/activityLevel": {
+      "get": {
+        "tags": [
+          "Audio",
+          "FastResource"
+        ],
+        "summary": "Get the current room in use activity level",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "peak": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 90,
+                      "example": 0,
+                      "description": "Current near-end activity in dB"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/roomInUse/config": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the configuration of the room in use feature",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "triggerTime": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20,
+                      "default": 15,
+                      "description": "Time in s of activity (i.e. activityLevel > threshold) required for room in use to indicate 'true'"
+                    },
+                    "releaseTime": {
+                      "type": "integer",
+                      "minimum": 5,
+                      "maximum": 600,
+                      "default": 300,
+                      "description": "Time in s of inactivity required (i.e. activity_level < threshold) for room in use to indicate 'false'"
+                    },
+                    "threshold": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 36,
+                      "default": 10,
+                      "description": "Activity detection threshold in dB for room in use to turn true"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/outputs/analog": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current settings of the analog output",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gain": {
+                      "type": "integer",
+                      "minimum": -18,
+                      "maximum": 0,
+                      "default": 0,
+                      "description": "Gain in dB"
+                    },
+                    "switch": {
+                      "type": "string",
+                      "default": "LocalOutput",
+                      "enum": [
+                        "FarendOutput",
+                        "LocalOutput"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the analog output settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gain": {
+                    "type": "integer",
+                    "minimum": -18,
+                    "maximum": 0,
+                    "example": 0,
+                    "description": "Gain in dB"
+                  },
+                  "switch": {
+                    "type": "string",
+                    "example": "FarendOutput",
+                    "enum": [
+                      "FarendOutput",
+                      "LocalOutput"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/outputs/dante/farEnd": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current settings of the far end output",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gain": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 24,
+                      "default": 12,
+                      "description": "Gain in dB"
+                    },
+                    "noiseGateEnabled": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Indication whether the settings from /api/audio/noiseGate are applied for this output"
+                    },
+                    "equalizerEnabled": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Indication whether the settings from /api/audio/equalizer are applied for this output"
+                    },
+                    "delay": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "default": 0,
+                      "description": "Delay in ms"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the far end output settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gain": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 24,
+                    "example": 12,
+                    "description": "Gain in dB"
+                  },
+                  "noiseGateEnabled": {
+                    "type": "boolean",
+                    "description": "Applies the settings from /api/audio/noiseGate"
+                  },
+                  "equalizerEnabled": {
+                    "type": "boolean",
+                    "description": "Applies the settings from /api/audio/equalizer"
+                  },
+                  "delay": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "example": 0,
+                    "description": "Delay in ms"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable Value (e.g out of range)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/voiceLift": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current voice lift settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "emergencyMuteThreshold": {
+                      "type": "integer",
+                      "minimum": -50,
+                      "maximum": -3,
+                      "default": -20,
+                      "description": "Threshold in dB"
+                    },
+                    "emergencyMuteTime": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 30,
+                      "default": 3,
+                      "description": "Mute time in s"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current voice lift settings",
+        "description": "Set the current voice lift settings. Can be applied to the local output with the `voiceLiftEnabled` property.",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emergencyMuteThreshold": {
+                    "type": "integer",
+                    "minimum": -50,
+                    "maximum": -3,
+                    "example": -20,
+                    "description": "Threshold in dB"
+                  },
+                  "emergencyMuteTime": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 30,
+                    "example": 3,
+                    "description": "Mute time in s"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable Value (e.g out of range)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/outputs/dante/local": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current settings of the local output",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gain": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 24,
+                      "default": 12
+                    },
+                    "noiseGateEnabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "equalizerEnabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "voiceLiftEnabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "delay": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "default": 0,
+                      "description": "Delay in ms"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the local output settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gain": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 24,
+                    "example": 12
+                  },
+                  "noiseGateEnabled": {
+                    "type": "boolean"
+                  },
+                  "equalizerEnabled": {
+                    "type": "boolean"
+                  },
+                  "voiceLiftEnabled": {
+                    "type": "boolean"
+                  },
+                  "delay": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "example": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable Value (e.g out of range)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/dante/reference": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get settings of the reference input",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gain": {
+                      "type": "integer",
+                      "minimum": -60,
+                      "maximum": 10,
+                      "default": 0,
+                      "description": "The manual gain for the far end detection in dB"
+                    },
+                    "farEndAutoAdjustEnabled": {
+                      "default": true,
+                      "type": "boolean",
+                      "description": "Indication whether automatic threshold adjustment based on noise floor estimation is enabled"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set reference input settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gain": {
+                    "type": "integer",
+                    "minimum": -60,
+                    "maximum": 10,
+                    "example": 0,
+                    "description": "The manual gain for the far end detection in dB. Must not be sent if `farEndAutoAdjustEnabled` is `true`."
+                  },
+                  "farEndAutoAdjustEnabled": {
+                    "type": "boolean",
+                    "description": "Enable automatic threshold adjustment based on noise floor estimation. If `true` must not be sent together with `gain`."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "409": {
+            "description": "Conflict. Trying to set manual gain while farEndAutoAdjustEnabled is true"
+          },
+          "422": {
+            "description": "Unprocessable entity, because manual gain conflicts with farEndAutoAdjustEnabled value in the request"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/equalizer": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current equalizer settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gains": {
+                      "type": "array",
+                      "minItems": 7,
+                      "maxItems": 7,
+                      "description": "Equalizer bands with cut-off frequencies of 125, 250, 500, 1000, 2000, 4000, 8000 and Q value of 1.4142",
+                      "items": {
+                        "type": "integer",
+                        "minimum": -8,
+                        "maximum": 8,
+                        "default": 0,
+                        "description": "Gain in dB"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current equalizer settings",
+        "description": "Set the current equalizer settings. Can be applied to a specific output with the `equalizerEnabled` property. Note that all equalizers share the same settings from this route.",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gains": {
+                    "type": "array",
+                    "minItems": 7,
+                    "maxItems": 7,
+                    "description": "Equalizer bands with cut-off frequencies of 125, 250, 500, 1000, 2000, 4000, 8000 and Q value of 1.4142",
+                    "items": {
+                      "type": "integer",
+                      "minimum": -8,
+                      "maximum": 8,
+                      "example": 0,
+                      "description": "Gain in dB"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable Value (e.g out of range)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/noiseGate": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current noise gate settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "threshold": {
+                      "type": "integer",
+                      "minimum": -90,
+                      "maximum": -40,
+                      "default": -80,
+                      "description": "Threshold in dB"
+                    },
+                    "holdTime": {
+                      "type": "integer",
+                      "minimum": 50,
+                      "maximum": 1000,
+                      "default": 350,
+                      "description": "Hold time in ms"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current noise gate settings",
+        "description": "Set the current noise gate settings. Can be applied to a specific output with the `noiseGateEnabled` property. Note that all noise gates share the same settings from this route.",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "threshold": {
+                    "type": "integer",
+                    "minimum": -90,
+                    "maximum": -40,
+                    "example": -80,
+                    "description": "Threshold in dB"
+                  },
+                  "holdTime": {
+                    "type": "integer",
+                    "minimum": 50,
+                    "maximum": 1000,
+                    "example": 350,
+                    "description": "Hold time in ms"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable Value (e.g out of range)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/leds/ring": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Get the current led ring settings",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "brightness": {
+                      "type": "integer",
+                      "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                      ],
+                      "description": "The brightness of the led ring can be controlled in 6 steps, where 0 is off and 5 is full brightness.",
+                      "default": 5
+                    },
+                    "showFarendActivity": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "micOn": {
+                      "type": "object",
+                      "properties": {
+                        "color": {
+                          "type": "string",
+                          "default": "Green",
+                          "enum": [
+                            "LightGreen",
+                            "Green",
+                            "Blue",
+                            "Red",
+                            "Yellow",
+                            "Orange",
+                            "Cyan",
+                            "Pink"
+                          ]
+                        }
+                      }
+                    },
+                    "micMute": {
+                      "type": "object",
+                      "properties": {
+                        "color": {
+                          "type": "string",
+                          "default": "Green",
+                          "enum": [
+                            "LightGreen",
+                            "Green",
+                            "Blue",
+                            "Red",
+                            "Yellow",
+                            "Orange",
+                            "Cyan",
+                            "Pink"
+                          ]
+                        }
+                      }
+                    },
+                    "micCustom": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "default": false,
+                          "type": "boolean"
+                        },
+                        "color": {
+                          "type": "string",
+                          "default": "Green",
+                          "enum": [
+                            "LightGreen",
+                            "Green",
+                            "Blue",
+                            "Red",
+                            "Yellow",
+                            "Orange",
+                            "Cyan",
+                            "Pink"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Set the current led ring brightness and colors",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "brightness": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2,
+                      3,
+                      4,
+                      5
+                    ],
+                    "description": "The brightness of the led ring can be controlled in 6 steps, where 0 is off and 5 is full brightness.",
+                    "example": 5
+                  },
+                  "showFarendActivity": {
+                    "type": "boolean"
+                  },
+                  "micOn": {
+                    "type": "object",
+                    "properties": {
+                      "color": {
+                        "type": "string",
+                        "example": "Green",
+                        "enum": [
+                          "LightGreen",
+                          "Green",
+                          "Blue",
+                          "Red",
+                          "Yellow",
+                          "Orange",
+                          "Cyan",
+                          "Pink"
+                        ]
+                      }
+                    }
+                  },
+                  "micMute": {
+                    "type": "object",
+                    "properties": {
+                      "color": {
+                        "type": "string",
+                        "example": "Green",
+                        "enum": [
+                          "LightGreen",
+                          "Green",
+                          "Blue",
+                          "Red",
+                          "Yellow",
+                          "Orange",
+                          "Cyan",
+                          "Pink"
+                        ]
+                      }
+                    }
+                  },
+                  "micCustom": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "color": {
+                        "type": "string",
+                        "example": "Green",
+                        "enum": [
+                          "LightGreen",
+                          "Green",
+                          "Blue",
+                          "Red",
+                          "Yellow",
+                          "Orange",
+                          "Cyan",
+                          "Pink"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/power/poe/daisychain": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "summary": "Get the daisy chain and PoE state",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sufficientPower": {
+                      "type": "boolean",
+                      "description": "Indicates whether there is sufficient power on the PoE input to power a subsequent device on the PoE output."
+                    },
+                    "inUse": {
+                      "type": "boolean",
+                      "description": "Indicates whether there is a subsequent device being powered on the PoE output."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/exclusionZones": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the supported exclusion zone ids",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "minItems": 5,
+                  "maxItems": 5,
+                  "uniqueItems": true,
+                  "default": [
+                    {
+                      "id": 0,
+                      "enabled": true,
+                      "elevation": {
+                        "min": 0,
+                        "max": 10
+                      },
+                      "azimuth": {
+                        "min": 0,
+                        "max": 360
+                      }
+                    },
+                    {
+                      "id": 1,
+                      "enabled": false,
+                      "elevation": {
+                        "min": 10,
+                        "max": 50
+                      },
+                      "azimuth": {
+                        "min": 20,
+                        "max": 70
+                      }
+                    },
+                    {
+                      "id": 2,
+                      "enabled": false,
+                      "elevation": {
+                        "min": 10,
+                        "max": 50
+                      },
+                      "azimuth": {
+                        "min": 110,
+                        "max": 160
+                      }
+                    },
+                    {
+                      "id": 3,
+                      "enabled": false,
+                      "elevation": {
+                        "min": 10,
+                        "max": 50
+                      },
+                      "azimuth": {
+                        "min": 200,
+                        "max": 250
+                      }
+                    },
+                    {
+                      "id": 4,
+                      "enabled": false,
+                      "elevation": {
+                        "min": 10,
+                        "max": 50
+                      },
+                      "azimuth": {
+                        "min": 290,
+                        "max": 340
+                      }
+                    }
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "elevation": {
+                        "type": "object",
+                        "properties": {
+                          "min": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 90,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          },
+                          "max": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 90,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          }
+                        }
+                      },
+                      "azimuth": {
+                        "type": "object",
+                        "properties": {
+                          "min": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 360,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          },
+                          "max": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 360,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/exclusionZones/{id}": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current exclusion zone settings of zone number `id`",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4,
+              "example": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "For the defaults of the individual zones see /api/audio/inputs/microphone/exclusionZones",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "elevation": {
+                      "type": "object",
+                      "properties": {
+                        "min": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 90,
+                          "multipleOf": 5,
+                          "example": 0,
+                          "description": "Angle in degrees"
+                        },
+                        "max": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 90,
+                          "multipleOf": 5,
+                          "example": 10,
+                          "description": "Angle in degrees"
+                        }
+                      }
+                    },
+                    "azimuth": {
+                      "type": "object",
+                      "properties": {
+                        "min": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 360,
+                          "multipleOf": 5,
+                          "example": 0,
+                          "description": "Angle in degrees"
+                        },
+                        "max": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 360,
+                          "multipleOf": 5,
+                          "example": 360,
+                          "description": "Angle in degrees"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current exclusion zone settings of zone number `id`",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4,
+              "example": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "elevation": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 90,
+                        "multipleOf": 5,
+                        "example": 0,
+                        "description": "Angle in degrees"
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 90,
+                        "multipleOf": 5,
+                        "example": 10,
+                        "description": "Angle in degrees"
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ]
+                  },
+                  "azimuth": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 360,
+                        "multipleOf": 5,
+                        "example": 0,
+                        "description": "Angle in degrees"
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 360,
+                        "multipleOf": 5,
+                        "example": 360,
+                        "description": "Angle in degrees"
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "409": {
+            "description": "Conflict. Trying to set an angle that would not result in a width of at least 10 degrees"
+          },
+          "422": {
+            "description": "Unprocessable entity, because the width of an exclusion zone must be at least 10 degrees or the URL contains a wrong ID."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/priorityZones": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the supported priority zone ids",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "uniqueItems": true,
+                  "default": [
+                    {
+                      "id": 0,
+                      "enabled": false,
+                      "weight": 1.5,
+                      "elevation": {
+                        "min": 60,
+                        "max": 80
+                      },
+                      "azimuth": {
+                        "min": 160,
+                        "max": 200
+                      }
+                    }
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 0,
+                        "example": 0
+                      },
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "weight": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 1,
+                        "maximum": 4,
+                        "multipleOf": 0.1,
+                        "description": "Unitless multiplicator"
+                      },
+                      "elevation": {
+                        "type": "object",
+                        "properties": {
+                          "min": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 90,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          },
+                          "max": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 90,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          }
+                        }
+                      },
+                      "azimuth": {
+                        "type": "object",
+                        "properties": {
+                          "min": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 360,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          },
+                          "max": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 360,
+                            "multipleOf": 5,
+                            "description": "Angle in degrees"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/priorityZones/{id}": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current priority zone settings of zone number `id`",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 0,
+              "example": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "format": "float",
+                      "minimum": 1,
+                      "maximum": 4,
+                      "multipleOf": 0.1,
+                      "example": 1,
+                      "description": "Unitless multiplicator"
+                    },
+                    "elevation": {
+                      "type": "object",
+                      "properties": {
+                        "min": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 90,
+                          "multipleOf": 5,
+                          "example": 0,
+                          "description": "Angle in degrees"
+                        },
+                        "max": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 90,
+                          "multipleOf": 5,
+                          "example": 10,
+                          "description": "Angle in degrees"
+                        }
+                      }
+                    },
+                    "azimuth": {
+                      "type": "object",
+                      "properties": {
+                        "min": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 360,
+                          "multipleOf": 5,
+                          "example": 0,
+                          "description": "Angle in degrees"
+                        },
+                        "max": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 360,
+                          "multipleOf": 5,
+                          "example": 360,
+                          "description": "Angle in degrees"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Not found since the resource is not existing (e.g., the URL contains a wrong ID)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current priority zone settings of zone number `id`",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 0,
+              "example": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "format": "float",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "multipleOf": 0.1,
+                    "example": 1.5,
+                    "description": "Unitless multiplicator"
+                  },
+                  "elevation": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 90,
+                        "multipleOf": 5,
+                        "example": 60,
+                        "description": "Angle in degrees"
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 90,
+                        "multipleOf": 5,
+                        "example": 80,
+                        "description": "Angle in degrees"
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ]
+                  },
+                  "azimuth": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 360,
+                        "multipleOf": 5,
+                        "example": 160,
+                        "description": "Angle in degrees"
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 360,
+                        "multipleOf": 5,
+                        "example": 200,
+                        "description": "Angle in degrees"
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "409": {
+            "description": "Conflict. Trying to set an angle that would not result in a width of at least 15 degrees"
+          },
+          "422": {
+            "description": "Unprocessable entity, because the width of a priority zone must be at least 15 degrees or URL contains a wrong ID."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/denoiser": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the current denoiser setting",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "setting": {
+                      "type": "string",
+                      "enum": [
+                        "Off",
+                        "Low",
+                        "Medium",
+                        "High"
+                      ],
+                      "default": "Off"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the current denoiser setting",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "setting": {
+                    "type": "string",
+                    "enum": [
+                      "Off",
+                      "Low",
+                      "Medium",
+                      "High"
+                    ],
+                    "example": "Off"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "422": {
+            "description": "Unprocessable Value (e.g unknown setting)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/device/licenseAgreements/licenses": {
+      "get": {
+        "summary": "Retrieve the PDF of the OpenSource licenses used by software on the device",
+        "tags": [
+          "LicenseAgreements"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g. this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "SSCv2 Server encountered an internal error"
+          }
+        }
+      }
+    },
+    "/api/device/licenseAgreements/hash": {
+      "get": {
+        "summary": "Retrieve a SHA2-256 hash of the license agreements file",
+        "tags": [
+          "LicenseAgreements"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "example": "e4491bb82bf36d124f92d4bba1edac60f6178e92a3b89c436fb660b99c10d538"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g. this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "SSCv2 Server encountered an internal error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/inputLowcuts": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the status of the microphone low-cut filters",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the status of the microphone low-cut filters",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/singleCapsuleMode": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get the status of the single capsule mode for calibration",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Enable single capsule mode to route a raw single microphone capsule signal to the output."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set the status of the single capsule mode",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/audio/inputs/microphone/beam/beamfreeze/autoHold": {
+      "get": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Get properties for beam-freeze auto-hold mechanism.",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Enable beam-freeze deactivation by near-end speech activity and variable hold-time setting."
+                    },
+                    "holdTime": {
+                      "type": "integer",
+                      "minimum": 50,
+                      "maximum": 500,
+                      "default": 100,
+                      "multipleOf": 1,
+                      "description": "Minumum hold duration in ms before beam-freeze deactivation by near-end speech is accepted."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audio"
+        ],
+        "summary": "Set properties for beam-freeze auto-hold mechanism",
+        "security": [
+          {
+            "basicAuthControlSennheiser": []
+          },
+          {
+            "basicAuthApi": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "holdTime": {
+                    "type": "integer",
+                    "minimum": 50,
+                    "maximum": 500,
+                    "default": 100,
+                    "multipleOf": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad request since the format is not correct (e.g., wrong JSON payload)"
+          },
+          "401": {
+            "description": "Unauthorized since no user credentials are passed"
+          },
+          "403": {
+            "description": "Forbidden since the authenticated user is not allowed to access this resource (e.g., this route is not allowed for the ``initialSennheiser`` user)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  }
+}

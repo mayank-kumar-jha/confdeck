@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordain Camera Viewer - Optimized</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        .camera-grid {
+            flex: 1;
+            display: grid;
+            gap: 4px;
+            padding: 4px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .camera-grid.single {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .camera-grid.dual {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .camera-grid.triple {
+            grid-template-columns: 65fr 35fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .camera-grid.triple .slot:nth-child(1) {
+            grid-row: span 2;
+        }
+
+        .camera-grid.quad {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .camera-grid.grid_2x3 {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .camera-grid.grid_3x3 {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .camera-grid.pip {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            position: relative;
+        }
+
+        .camera-grid.pip .slot:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .camera-grid.pip .slot:nth-child(2) {
+            position: absolute !important;
+            bottom: 20px;
+            right: 20px;
+            width: 28%;
+            height: 28%;
+            border: 2px solid #F58220;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+            z-index: 15;
+            overflow: hidden;
+        }
+
+        .camera-grid.pip .slot:nth-child(2) .slot-label {
+            bottom: 8px;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .camera-grid.vertical_stack {
+            grid-template-columns: 1fr;
+            grid-template-rows: repeat(6, 1fr);
+        }
+
+        .camera-grid.focus_sidebar {
+            grid-template-columns: 3fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .camera-grid.focus_sidebar .slot:nth-child(1) {
+            grid-row: span 3;
+        }
+
+        .slot {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+            display: block;
+        }
+
+        .slot .placeholder {
+            color: #555;
+            font-size: 14px;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .slot .slot-label {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            color: #ffffff;
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 10;
+            pointer-events: none;
+            white-space: nowrap;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-dot {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            z-index: 100;
+            opacity: 0.6;
+            transition: background 0.5s, box-shadow 0.5s;
+        }
+
+        .status-dot.connected {
+            background: #00ff88;
+            box-shadow: 0 0 6px #00ff88;
+        }
+
+        .status-dot.disconnected {
+            background: #ff4444;
+            box-shadow: 0 0 6px #ff4444;
+        }
+
+        .reconnect-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 45;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #f97316;
+            font-family: sans-serif;
+            border-radius: 4px;
+        }
+
+        .reconnect-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .reconnect-text {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #0f0;
+            font-size: 10px;
+            padding: 8px;
+            font-family: monospace;
+            max-width: 300px;
+            z-index: 99;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="globalBootOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 999999; transition: opacity 0.5s ease; display: flex; justify-content: center; align-items: center;">
+        <div class="spinner" style="position: absolute; z-index: 1;"></div>
+        <div
+            style="position: absolute; color: #f97316; font-size: 22px; font-weight: bold; letter-spacing: 2px; z-index: 2; margin-top: 100px;">
+            STARTING CAMERAS...</div>
+        <video src="/api/local_video" autoplay loop muted playsinline
+            style="position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 3;"></video>
+    </div>
+
+    <div class="camera-grid single" id="cameraGrid"></div>
+    <div class="status-dot disconnected" id="statusDot" title="Disconnected"></div>
+    <div class="debug-info" id="debugInfo" style="display: none;"></div>
+
+    <script src="/static/socket.io.min.js"></script>
+    <script>
+        const serverIp = window.location.hostname || '127.0.0.1';
+
+        const CONFIG = {
+            BACKEND_URL: `http://${serverIp}:4000`,
+            MEDIAMTX_WEBRTC_PORT: 8889,
+            MEDIAMTX_HOST: serverIp,
+            RECONNECT_DELAY: 3000,
+            FREEZE_CHECK_INTERVAL: 4000,
+            FREEZE_THRESHOLD: 4,
+            FETCH_TIMEOUT: 8000,
+            RTC_ICE_TIMEOUT: 15000,
+            MAX_RECONNECT_ATTEMPTS: 9999,
+            GRACE_PERIOD_AFTER_CONNECTION: 25000,
+            GRACE_PERIOD_AFTER_LAYOUT_CHANGE: 8000,
+            DEBUG: false
+        };
+
+        let state = {
+            currentLayout: 'single',
+            currentSlots: [],
+            cameraConnections: {},
+            slotToCameraMap: {},
+            isApplyingLayout: false,
+            isLayoutChanging: false,
+            layoutUpdateTimeout: null,
+            layoutChangeGraceTimeout: null,
+            cameraReconnectAttempts: {},
+            freezeCounters: {},
+            lastVideoTimes: {},
+            lastSlotActivityTime: {},
+            connectionTimestamps: {},
+            receivedLiveLayout: false,
+            systemAvailableCameras: []
+        };
+
+        const elements = {
+            cameraGrid: document.getElementById('cameraGrid'),
+            statusDot: document.getElementById('statusDot'),
+            debugInfo: document.getElementById('debugInfo')
+        };
+
+        let socket = null;
+        let reconnectTimer = null;
+        let isLoadingDismissed = false;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = `[${timestamp}]`;
+            switch (type) {
+                case 'error': console.error(prefix, '❌', message); break;
+                case 'warn': console.warn(prefix, '⚠️', message); break;
+                case 'success': console.log(prefix, '✅', message); break;
+                default: console.log(prefix, '📝', message);
+            }
+            if (CONFIG.DEBUG) {
+                const debugEl = elements.debugInfo;
+                if (debugEl) {
+                    const line = document.createElement('div');
+                    line.textContent = `${timestamp} ${message}`;
+                    debugEl.appendChild(line);
+                    debugEl.scrollTop = debugEl.scrollHeight;
+                    if (debugEl.children.length > 20) debugEl.removeChild(debugEl.firstChild);
+                }
+            }
+        }
+
+        async function fetchWithTimeout(url, options = {}, timeout = CONFIG.FETCH_TIMEOUT) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                throw error;
+            }
+        }
+
+        function dismissLoadingScreen() {
+            if (isLoadingDismissed) return;
+            isLoadingDismissed = true;
+            log("[HANDOFF] First frame decoded. Dismissing loading screen...", "success");
+
+            const overlay = document.getElementById('globalBootOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; }, 500);
+            }
+
+            fetchWithTimeout(`${CONFIG.BACKEND_URL}/api/dismiss_loading`, { method: 'POST' }).catch(() => { });
+        }
+
+        async function maintainWarmStandby(rtspUrlsData) {
+            if (!rtspUrlsData) return;
+            const activeCamIds = Object.keys(rtspUrlsData);
+
+            for (const camId of activeCamIds) {
+                if (!state.cameraConnections[camId]) {
+                    log(`[WARM STANDBY] Pre-connecting ${camId} in background`, 'info');
+                    createCameraConnection(camId).catch(e => log(`Standby connect error ${camId}: ${e.message}`, 'warn'));
+                }
+            }
+        }
+
+        function connectSocket() {
+            if (socket && socket.connected) return;
+            updateStatus(false);
+            socket = io(CONFIG.BACKEND_URL, {
+                transports: ['websocket', 'polling'], reconnection: true,
+                reconnectionAttempts: Infinity, reconnectionDelay: 2000,
+                reconnectionDelayMax: 10000, timeout: 10000
+            });
+
+            socket.on('connect', () => {
+                log('Connected to backend', 'success');
+                updateStatus(true);
+                setTimeout(() => {
+                    if (!state.receivedLiveLayout) {
+                        fetchLayout();
+                    }
+                }, 1500);
+            });
+
+            socket.on('disconnect', () => {
+                log('Disconnected from backend', 'warn');
+                updateStatus(false);
+                state.receivedLiveLayout = false;
+                scheduleReconnect();
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`Connection error: ${error.message}`, 'error');
+                updateStatus(false);
+                scheduleReconnect();
+            });
+
+            // 🔥 FIX: INSTANT UI RESET ON FACTORY DATA RESET
+            socket.on('config_updated', () => {
+                log('System reset detected. Instantly clearing layout...', 'warn');
+
+                // 1. सारे वीडियो कनेक्शन्स तुरंत किल करें
+                for (const cameraId of Object.keys(state.cameraConnections)) {
+                    try { closeCameraConnection(cameraId); } catch (e) { }
+                }
+
+                // 2. स्टेट (State) को पूरी तरह खाली करें ताकि 'Reconnecting' स्पिनर ना आए
+                state.currentLayout = 'single';
+                state.isApplyingLayout = false;
+                state.isLayoutChanging = false;
+                state.slotToCameraMap = { 1: null }; // सारे कैमरे मैप से हटा दिए
+                state.cameraConnections = {};
+                state.connectionTimestamps = {};
+                state.freezeCounters = {};
+
+                // 3. 6 स्क्रीन्स वाले ग्रिड को तुरंत (Instantly) तोड़कर 1 सिंगल स्लॉट बनाएँ
+                elements.cameraGrid.className = 'camera-grid single';
+                elements.cameraGrid.innerHTML = `
+                <div class="slot" id="slot-1" data-camera-id="">
+                    <div class="placeholder">No camera assigned</div>
+                </div>
+            `;
+
+                // 4. बैकएंड के साथ सिंक करने के लिए
+                state.receivedLiveLayout = false;
+            });
+
+            socket.on('layout_update', (data) => {
+                if (!data || typeof data !== 'object') return;
+                state.receivedLiveLayout = true;
+
+                if (data.rtsp_urls) maintainWarmStandby(data.rtsp_urls);
+
+                const layout = data.layout || {};
+                if (layout.layout_type) state.currentLayout = layout.layout_type;
+                if (layout.slots && Array.isArray(layout.slots)) applyLayoutUpdate(layout);
+            });
+        }
+
+        function scheduleReconnect() {
+            if (reconnectTimer) return;
+            reconnectTimer = setTimeout(() => {
+                reconnectTimer = null;
+                connectSocket();
+            }, CONFIG.RECONNECT_DELAY);
+        }
+
+        function updateStatus(connected) {
+            elements.statusDot.className = connected ? 'status-dot connected' : 'status-dot disconnected';
+            elements.statusDot.title = connected ? 'Connected' : 'Disconnected';
+        }
+
+        function getVisibleSlotCountForLayout(layoutType) {
+            const layoutMap = { 'single': 1, 'dual': 2, 'pip': 2, 'triple': 3, 'quad': 4, 'grid_2x3': 6, 'grid_3x3': 9, 'vertical_stack': 6, 'focus_sidebar': 4 };
+            return layoutMap[layoutType] || 1;
+        }
+
+        async function applyLayoutUpdate(newLayout) {
+            if (state.isApplyingLayout) {
+                if (state.layoutUpdateTimeout) clearTimeout(state.layoutUpdateTimeout);
+                state.layoutUpdateTimeout = setTimeout(() => {
+                    state.isApplyingLayout = false;
+                    applyLayoutUpdate(newLayout);
+                }, 100);
+                return;
+            }
+
+            state.isApplyingLayout = true;
+            state.isLayoutChanging = true;
+
+            try {
+                const newSlots = Array.isArray(newLayout.slots) ? newLayout.slots : [];
+                const newLayoutType = newLayout.layout_type || state.currentLayout;
+                const visibleSlotCount = getVisibleSlotCountForLayout(newLayoutType);
+
+                state.currentLayout = newLayoutType;
+                elements.cameraGrid.className = `camera-grid ${state.currentLayout}`;
+                ensureSlotContainers(visibleSlotCount);
+
+                const newSlotToCamera = {};
+                for (let i = 0; i < visibleSlotCount; i++) {
+                    const slot = newSlots[i];
+                    const slotId = slot?.slot_id || (i + 1);
+                    newSlotToCamera[slotId] = (slot && slot.assigned_camera && slot.assigned_camera !== 'none') ? slot.assigned_camera : null;
+                }
+
+                const uniqueCameras = [...new Set(Object.values(newSlotToCamera).filter(c => c !== null && c !== ''))];
+                for (const cameraId of uniqueCameras) {
+                    if (!state.cameraConnections[cameraId]) {
+                        try {
+                            await createCameraConnection(cameraId);
+                        } catch (error) {
+                            log(`Failed to create connection for ${cameraId}: ${error.message}`, 'error');
+                            scheduleReconnectCamera(cameraId);
+                        }
+                    }
+                }
+
+                for (const [slotId, cameraId] of Object.entries(newSlotToCamera)) {
+                    const slotElement = document.getElementById(`slot-${slotId}`);
+                    if (!slotElement) continue;
+
+                    state.lastSlotActivityTime[slotId] = Date.now();
+
+                    // 🔥 FIX 1: CLEAR THE OVERLAY FOREVER WHEN LAYOUT CHANGES
+                    const overlay = slotElement.querySelector('.reconnect-overlay');
+                    if (overlay) overlay.classList.remove('active');
+                    state.freezeCounters[slotId] = 0;
+
+                    if (cameraId && state.cameraConnections[cameraId]) {
+                        const connection = state.cameraConnections[cameraId];
+                        if (!connection.videoElement) continue;
+
+                        const videoElement = connection.videoElement;
+                        const existingVideo = slotElement.querySelector('video');
+
+                        if (existingVideo === videoElement) continue;
+
+                        if (existingVideo) {
+                            existingVideo.remove();
+                        }
+
+                        if (videoElement.parentElement !== slotElement) {
+                            if (videoElement.parentElement) videoElement.parentElement.removeChild(videoElement);
+                            slotElement.insertBefore(videoElement, slotElement.firstChild);
+                        }
+
+                        const placeholder = slotElement.querySelector('.placeholder');
+                        if (placeholder) placeholder.classList.add('hidden');
+
+                        if (videoElement.paused && videoElement.srcObject) {
+                            videoElement.play().catch(e => log(`Play error: ${e.message}`, 'warn'));
+                        }
+
+                        slotElement.dataset.cameraId = cameraId;
+                    } else {
+                        slotElement.dataset.cameraId = '';
+                        const existingVideo = slotElement.querySelector('video');
+                        if (existingVideo) existingVideo.remove();
+
+                        let placeholder = slotElement.querySelector('.placeholder');
+                        if (!placeholder) {
+                            placeholder = document.createElement('div');
+                            placeholder.className = 'placeholder';
+                            placeholder.textContent = 'No camera assigned';
+                            slotElement.appendChild(placeholder);
+                        } else {
+                            placeholder.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                updateSlotLabels(newSlots, visibleSlotCount);
+                state.slotToCameraMap = newSlotToCamera;
+                state.currentSlots = newSlots;
+
+            } catch (error) {
+                log(`Layout update error: ${error.message}`, 'error');
+            } finally {
+                state.isApplyingLayout = false;
+                if (state.layoutChangeGraceTimeout) clearTimeout(state.layoutChangeGraceTimeout);
+                state.layoutChangeGraceTimeout = setTimeout(() => {
+                    state.isLayoutChanging = false;
+                }, CONFIG.GRACE_PERIOD_AFTER_LAYOUT_CHANGE);
+
+                if (state.layoutUpdateTimeout) {
+                    clearTimeout(state.layoutUpdateTimeout);
+                    state.layoutUpdateTimeout = null;
+                }
+            }
+        }
+
+        function ensureSlotContainers(slotCount) {
+            const existingSlots = elements.cameraGrid.querySelectorAll('.slot');
+            const existingCount = existingSlots.length;
+            if (existingCount > slotCount) {
+                for (let i = slotCount + 1; i <= existingCount; i++) {
+                    const slot = document.getElementById(`slot-${i}`);
+                    if (slot) slot.remove();
+                }
+            }
+            for (let i = existingCount + 1; i <= slotCount; i++) {
+                createSlotContainer(i);
+            }
+            for (let i = 1; i <= slotCount; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (slot) slot.style.display = 'flex';
+            }
+        }
+
+        function createSlotContainer(slotId) {
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'slot';
+            slotDiv.id = `slot-${slotId}`;
+            slotDiv.dataset.cameraId = '';
+
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder';
+            placeholder.textContent = 'No camera assigned';
+            slotDiv.appendChild(placeholder);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'reconnect-overlay';
+            overlay.id = `reconnect-overlay-slot-${slotId}`;
+            overlay.innerHTML = `<div class="spinner"></div><div class="reconnect-text">Reconnecting Please wait...</div>`;
+            slotDiv.appendChild(overlay);
+
+            elements.cameraGrid.appendChild(slotDiv);
+        }
+
+        function updateSlotLabels(slots, visibleSlotCount) {
+            for (let i = 0; i < visibleSlotCount; i++) {
+                const slot = slots[i];
+                if (!slot) continue;
+                const slotDiv = document.getElementById(`slot-${slot.slot_id}`);
+                if (!slotDiv) continue;
+                let labelDiv = slotDiv.querySelector('.slot-label');
+                if (slot.custom_label && slot.custom_label.trim()) {
+                    if (labelDiv) {
+                        labelDiv.textContent = slot.custom_label;
+                    } else {
+                        labelDiv = document.createElement('div');
+                        labelDiv.className = 'slot-label';
+                        labelDiv.textContent = slot.custom_label;
+                        slotDiv.appendChild(labelDiv);
+                    }
+                } else {
+                    if (labelDiv) labelDiv.remove();
+                }
+            }
+        }
+
+        async function createCameraConnection(cameraId) {
+            if (state.cameraConnections[cameraId]) return state.cameraConnections[cameraId];
+            try {
+                const videoElement = document.createElement('video');
+                videoElement.id = `video-${cameraId}`;
+                videoElement.autoplay = true;
+                videoElement.muted = true;
+                videoElement.playsInline = true;
+                videoElement.style.width = '100%';
+                videoElement.style.height = '100%';
+                videoElement.style.objectFit = 'cover';
+
+                const pc = new RTCPeerConnection({ iceServers: [], iceTransportPolicy: 'all', bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require' });
+
+                pc.ontrack = (event) => {
+                    try {
+                        if (event.streams && event.streams[0]) {
+                            videoElement.srcObject = event.streams[0];
+                            const parentSlot = videoElement.parentElement;
+                            if (parentSlot) {
+                                const placeholder = parentSlot.querySelector('.placeholder');
+                                if (placeholder) placeholder.classList.add('hidden');
+                            }
+
+                            videoElement.onplaying = () => { dismissLoadingScreen(); };
+                            videoElement.ontimeupdate = () => { if (videoElement.currentTime > 0.1) { dismissLoadingScreen(); } };
+
+                            if (videoElement.paused) {
+                                videoElement.play().catch(e => log(`Play error: ${e.message}`, 'warn'));
+                            }
+
+                            log(`Video stream attached for ${cameraId}`, 'success');
+                        }
+                    } catch (error) { }
+                };
+
+                pc.onconnectionstatechange = () => {
+                    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+                        scheduleReconnectCamera(cameraId);
+                    }
+                };
+
+                pc.addTransceiver('video', { direction: 'recvonly' });
+                const offer = await pc.createOffer({ offerToReceiveVideo: true });
+                await pc.setLocalDescription(offer);
+
+                const webrtcUrl = `http://${CONFIG.MEDIAMTX_HOST}:${CONFIG.MEDIAMTX_WEBRTC_PORT}/${cameraId}/whep`;
+                const response = await fetchWithTimeout(webrtcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/sdp' },
+                    body: pc.localDescription.sdp
+                }, CONFIG.RTC_ICE_TIMEOUT);
+
+                if (!response.ok) throw new Error(`MediaMTX returned ${response.status}`);
+                const answerSdp = await response.text();
+                if (!answerSdp || answerSdp.trim() === '') throw new Error('Empty SDP answer received');
+
+                await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answerSdp }));
+
+                const connectionTime = Date.now();
+                state.connectionTimestamps[cameraId] = connectionTime;
+                state.cameraConnections[cameraId] = { pc: pc, videoElement: videoElement, cameraId: cameraId, createdAt: connectionTime };
+                state.cameraReconnectAttempts[cameraId] = 0;
+
+                return state.cameraConnections[cameraId];
+            } catch (error) {
+                if (state.cameraConnections[cameraId]?.pc) {
+                    state.cameraConnections[cameraId].pc.close();
+                    delete state.cameraConnections[cameraId];
+                }
+                throw error;
+            }
+        }
+
+        async function closeCameraConnection(cameraId) {
+            const connection = state.cameraConnections[cameraId];
+            if (!connection) return;
+            try {
+                if (connection.videoElement && connection.videoElement.srcObject) {
+                    const tracks = connection.videoElement.srcObject.getTracks();
+                    tracks.forEach(track => { try { track.stop(); } catch (e) { } });
+                    connection.videoElement.srcObject = null;
+                }
+                if (connection.pc) connection.pc.close();
+                if (connection.videoElement && connection.videoElement.parentElement) connection.videoElement.remove();
+                delete state.cameraConnections[cameraId];
+                delete state.connectionTimestamps[cameraId];
+            } catch (error) { }
+        }
+
+        function scheduleReconnectCamera(cameraId) {
+            const attempts = state.cameraReconnectAttempts[cameraId] || 0;
+            if (attempts >= CONFIG.MAX_RECONNECT_ATTEMPTS) {
+                log(`Max reconnect attempts reached for ${cameraId}`, 'error');
+                return;
+            }
+            state.cameraReconnectAttempts[cameraId] = attempts + 1;
+
+            const delay = Math.min(2000 * attempts, 15000);
+            setTimeout(() => { reconnectCamera(cameraId); }, delay);
+        }
+
+        async function reconnectCamera(cameraId) {
+            try {
+                await closeCameraConnection(cameraId);
+                await createCameraConnection(cameraId);
+
+                for (const [slotId, camId] of Object.entries(state.slotToCameraMap)) {
+                    if (camId === cameraId) {
+                        const slotElement = document.getElementById(`slot-${slotId}`);
+                        if (slotElement && state.cameraConnections[cameraId]) {
+                            const videoElement = state.cameraConnections[cameraId].videoElement;
+                            const existingVideo = slotElement.querySelector('video');
+                            if (existingVideo && existingVideo !== videoElement) existingVideo.remove();
+                            if (videoElement.parentElement !== slotElement) {
+                                if (videoElement.parentElement) videoElement.parentElement.removeChild(videoElement);
+                                slotElement.insertBefore(videoElement, slotElement.firstChild);
+                            }
+                            const placeholder = slotElement.querySelector('.placeholder');
+                            if (placeholder) placeholder.classList.add('hidden');
+
+                            if (videoElement.paused && videoElement.srcObject) {
+                                videoElement.play().catch(e => log(`Play error: ${e.message}`, 'warn'));
+                            }
+                        }
+                    }
+                }
+            } catch (error) { scheduleReconnectCamera(cameraId); }
+        }
+
+        window._retryCamera = function (cameraId) { reconnectCamera(cameraId); };
+
+        async function fetchLayout() {
+            try {
+                const [layoutRes, rtspRes] = await Promise.all([
+                    fetchWithTimeout(`${CONFIG.BACKEND_URL}/api/get_layout`),
+                    fetchWithTimeout(`${CONFIG.BACKEND_URL}/api/get_rtsp_config`)
+                ]);
+
+                const layout = layoutRes.ok ? await layoutRes.json() : {};
+                const rtspUrls = rtspRes.ok ? await rtspRes.json() : {};
+
+                if (!layout || typeof layout !== 'object') throw new Error('Invalid layout response');
+
+                maintainWarmStandby(rtspUrls);
+
+                if (!state.receivedLiveLayout) {
+                    if (layout.layout_type) state.currentLayout = layout.layout_type;
+                    if (!layout.slots || !Array.isArray(layout.slots)) {
+                        layout.slots = Array.from({ length: 9 }, (_, i) => ({ slot_id: i + 1, assigned_camera: null, custom_label: '' }));
+                    }
+                    applyLayoutUpdate(layout);
+                }
+            } catch (error) { scheduleReconnect(); }
+        }
+
+        function initFreezeDetection() {
+            const isLocalKiosk = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
+
+            setInterval(() => {
+                if (state.isLayoutChanging) return;
+                if (!state.slotToCameraMap || Object.keys(state.slotToCameraMap).length === 0) return;
+
+                for (const [slotId, cameraId] of Object.entries(state.slotToCameraMap)) {
+                    if (!cameraId) continue;
+                    const slotElement = document.getElementById(`slot-${slotId}`);
+                    if (!slotElement) continue;
+
+                    const vid = slotElement.querySelector('video');
+                    const overlay = slotElement.querySelector('.reconnect-overlay');
+                    if (!overlay) continue;
+
+                    const connectionTime = state.connectionTimestamps[cameraId];
+                    const isInGracePeriod = connectionTime && (Date.now() - connectionTime < CONFIG.GRACE_PERIOD_AFTER_CONNECTION);
+                    const slotActivityTime = state.lastSlotActivityTime[slotId];
+                    const hasRecentActivity = slotActivityTime && (Date.now() - slotActivityTime < CONFIG.GRACE_PERIOD_AFTER_LAYOUT_CHANGE);
+
+                    if (isInGracePeriod || hasRecentActivity) {
+                        state.freezeCounters[slotId] = 0;
+                        overlay.classList.remove('active');
+                        continue;
+                    }
+
+                    const currentTime = vid ? vid.currentTime : -1;
+                    const lastTime = state.lastVideoTimes[slotId] ?? -1;
+                    const timeDiff = Math.abs(currentTime - lastTime);
+
+                    const isVideoDead = !vid || vid.readyState < 2 || timeDiff < 0.01;
+
+                    if (isVideoDead) {
+                        state.freezeCounters[slotId] = (state.freezeCounters[slotId] || 0) + 1;
+
+                        if (state.freezeCounters[slotId] >= 4) {
+                            overlay.classList.add('active');
+                        }
+
+                        if (state.freezeCounters[slotId] % 6 === 0) {
+                            if (isLocalKiosk) {
+                                fetchWithTimeout(`${CONFIG.BACKEND_URL}/api/restart_stream`, {
+                                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ cam_id: cameraId })
+                                }).catch(e => { });
+                            }
+
+                            setTimeout(() => { if (window._retryCamera) window._retryCamera(cameraId); }, 3000);
+                        }
+                    } else {
+                        state.freezeCounters[slotId] = 0;
+                        overlay.classList.remove('active');
+                    }
+                    state.lastVideoTimes[slotId] = currentTime;
+                }
+            }, CONFIG.FREEZE_CHECK_INTERVAL);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                if (document.fullscreenElement) document.exitFullscreen();
+                else document.body.requestFullscreen().catch(console.warn);
+            } else if (e.key === 'F5') {
+                e.preventDefault();
+                state.receivedLiveLayout = false;
+                fetchLayout();
+            } else if (e.key === 'D' || e.key === 'd') {
+                CONFIG.DEBUG = !CONFIG.DEBUG;
+                elements.debugInfo.style.display = CONFIG.DEBUG ? 'block' : 'none';
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            for (const cameraId of Object.keys(state.cameraConnections)) {
+                try { closeCameraConnection(cameraId); } catch (e) { }
+            }
+            if (socket) socket.disconnect();
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (state.layoutUpdateTimeout) clearTimeout(state.layoutUpdateTimeout);
+            if (state.layoutChangeGraceTimeout) clearTimeout(state.layoutChangeGraceTimeout);
+        });
+
+        function init() {
+            connectSocket();
+            initFreezeDetection();
+
+            setTimeout(() => {
+                if (!state.receivedLiveLayout) {
+                    fetchLayout();
+                }
+            }, 2000);
+
+            setTimeout(() => {
+                dismissLoadingScreen();
+            }, 21000);
+        }
+
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+        else { init(); }
+    </script>
+<script src="/js/modules/vc_viewer.js?v=20261117"></script>
+</body>
+
+</html>

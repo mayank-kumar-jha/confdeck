@@ -1,0 +1,29 @@
+[
+  {
+    "seed": 7,
+    "before_wrong": 0.060416666666666785,
+    "after_wrong": 0.04374999999999981,
+    "before_median": 1.299999999999999,
+    "after_median": 0.649999999999995,
+    "spurious_before": 0.0,
+    "spurious_after": 0.0
+  },
+  {
+    "seed": 19,
+    "before_wrong": 0.060416666666666785,
+    "after_wrong": 0.04374999999999981,
+    "before_median": 1.299999999999999,
+    "after_median": 0.649999999999995,
+    "spurious_before": 0.0,
+    "spurious_after": 0.0
+  },
+  {
+    "seed": 41,
+    "before_wrong": 0.060416666666666785,
+    "after_wrong": 0.04374999999999981,
+    "before_median": 1.299999999999999,
+    "after_median": 0.649999999999995,
+    "spurious_before": 0.0,
+    "spurious_after": 0.0
+  }
+]

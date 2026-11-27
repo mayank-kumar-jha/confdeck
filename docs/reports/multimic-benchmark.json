@@ -1,0 +1,47 @@
+{
+  "provenance": "Synthetic events and mocked requests; not room accuracy or physical latency",
+  "engines": {
+    "legacy": {
+      "events": 6400,
+      "microphones": 8,
+      "correct_transitions": 8,
+      "unexpected_transitions": 0,
+      "processing_ms_median": 0.005899928510189056,
+      "processing_ms_p95": 0.039899954572319984,
+      "synthetic_onset_to_decision_ms": [
+        500.0,
+        599.9999999999997,
+        600.0000000000014,
+        600.0000000000014,
+        500.0,
+        500.0,
+        500.0,
+        500.0
+      ]
+    },
+    "new": {
+      "events": 6400,
+      "microphones": 8,
+      "correct_transitions": 8,
+      "unexpected_transitions": 0,
+      "processing_ms_median": 0.05929998587816954,
+      "processing_ms_p95": 0.48010004684329033,
+      "synthetic_onset_to_decision_ms": [
+        800.0,
+        800.0000000000007,
+        899.9999999999986,
+        899.9999999999986,
+        899.9999999999986,
+        899.9999999999986,
+        899.9999999999986,
+        799.9999999999972
+      ]
+    }
+  },
+  "polling": {
+    "injected_request_ms": 40,
+    "previous_serial_median_ms": 97.35354996519163,
+    "current_parallel_median_ms": 49.945250095333904,
+    "current_parallel_p95_ms": 50.58500007726252
+  }
+}

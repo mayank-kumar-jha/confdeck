@@ -1,0 +1,107 @@
+{
+  "engine": "legacy",
+  "speech_seconds": 96.0,
+  "correct_rate": 0.7249999999999998,
+  "wrong_rate": 0.24062500000000023,
+  "no_decision_rate": 0.03437500000000001,
+  "confusion_labels": [
+    "a",
+    "b",
+    null
+  ],
+  "confusion_seconds": [
+    [
+      31.199999999999996,
+      13.500000000000004,
+      3.3000000000000007
+    ],
+    [
+      9.60000000000002,
+      38.39999999999998,
+      0.0
+    ],
+    [
+      48.0,
+      16.0,
+      8.0
+    ]
+  ],
+  "per_seat_accuracy": {
+    "a": 0.6499999999999999,
+    "b": 0.7999999999999995
+  },
+  "angular_median": 0.0,
+  "angular_p90": 140.00000000000003,
+  "opposite_rate": 0.24062500000000023,
+  "switch_latency_median": 1.800000000000006,
+  "switch_latencies": [
+    3.3000000000000007,
+    1.8000000000000007,
+    1.8000000000000007,
+    1.3999999999999986,
+    3.299999999999997,
+    1.7999999999999972,
+    3.299999999999997,
+    1.4000000000000057,
+    3.299999999999997,
+    1.8000000000000114,
+    1.8000000000000114,
+    1.4000000000000057
+  ],
+  "missed_trials": 0,
+  "spurious_switches_per_min": 0.0,
+  "echo_false_trigger_rate": 1.0,
+  "overlap_policy": "excluded; preserve previous seat",
+  "labelled_seconds": 168.0,
+  "provenance": "Synthetic fixture; not a measurement of room accuracy",
+  "settings": {
+    "profile": "Balanced",
+    "confirm_ms": 1000,
+    "min_hold_ms": 3000,
+    "deadband_deg": 8,
+    "zone_margin_deg": 8,
+    "ema_alpha": 0.25,
+    "median_n": 1,
+    "elevation_min": 0,
+    "elevation_max": 90,
+    "activity_gate": false,
+    "level_gate": true,
+    "level_threshold": -55,
+    "max_moves_per_min": 12,
+    "settle_ms": 1000,
+    "silence_ms": 10000,
+    "preset_speed": null,
+    "zones": [
+      {
+        "id": "a",
+        "name": "A",
+        "azimuth": 20.0,
+        "elevation": 20.0,
+        "radius": 25,
+        "azimuth_range": null,
+        "elevation_range": null,
+        "scene_id": "",
+        "presets": {
+          "mock": "1"
+        }
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "azimuth": 200.0,
+        "elevation": 20.0,
+        "radius": 25,
+        "azimuth_range": null,
+        "elevation_range": null,
+        "scene_id": "",
+        "presets": {
+          "mock": "2"
+        }
+      }
+    ],
+    "wide_presets": {
+      "mock": "0"
+    }
+  },
+  "session_id": "synthetic-7-test"
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ConfDeck · Room display</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/vendor/hls.min.js" defer></script>
+    <script src="/static/display.js" type="module"></script>
+  </head>
+  <body class="display-body">
+    <div id="pairing"></div>
+    <div id="display-grid" class="display-grid grid"></div>
+    <div id="blackout" hidden></div>
+    <div id="display-status" role="status">Connecting to ConfDeck…</div>
+    <button
+      id="fullscreen"
+      class="display-fullscreen"
+      title="Show this display full screen"
+    >
+      ⛶ Full screen
+    </button>
+  </body>
+</html>

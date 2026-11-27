@@ -1,0 +1,231 @@
+source: https://assets.sennheiser.com/download/assets/api_1.9.0.json/18b31510118311f186a21e752e7f194a
+version: '1.9'
+resources:
+  noise_gate:
+    path: /api/audio/noiseGate
+    schema:
+      type: object
+      properties:
+        threshold:
+          type: integer
+          minimum: -90
+          maximum: -40
+          example: -80
+          description: Threshold in dB
+        holdTime:
+          type: integer
+          minimum: 50
+          maximum: 1000
+          example: 350
+          description: Hold time in ms
+          multipleOf: 50
+  beam:
+    path: /api/audio/inputs/microphone/beam
+    schema:
+      type: object
+      properties:
+        installationType:
+          type: string
+          enum:
+          - FlushMounted
+          - SurfaceMounted
+          - Suspended
+          example: FlushMounted
+          description: The audio signal will be optimized for the chosen installation
+            type.
+        sourceDetectionThreshold:
+          type: string
+          enum:
+          - QuietRoom
+          - NormalRoom
+          - LoudRoom
+          example: NormalRoom
+          description: Threshold for detecting the speaker depending on the room noise
+            level.
+        offset:
+          type: integer
+          minimum: 0
+          maximum: 330
+          multipleOf: 30
+          description: Offset to the beam's azimuth angle. This will affect `/audio/metering/beamDirection`
+            and zone settings.
+  leds:
+    path: /api/device/leds/ring
+    schema:
+      type: object
+      properties:
+        brightness:
+          type: integer
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          description: The brightness of the led ring can be controlled in 6 steps,
+            where 0 is off and 5 is full brightness.
+          example: 5
+        showFarendActivity:
+          type: boolean
+        micOn:
+          type: object
+          properties:
+            color:
+              type: string
+              example: Green
+              enum:
+              - LightGreen
+              - Green
+              - Blue
+              - Red
+              - Yellow
+              - Orange
+              - Cyan
+              - Pink
+        micMute:
+          type: object
+          properties:
+            color:
+              type: string
+              example: Green
+              enum:
+              - LightGreen
+              - Green
+              - Blue
+              - Red
+              - Yellow
+              - Orange
+              - Cyan
+              - Pink
+        micCustom:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            color:
+              type: string
+              example: Green
+              enum:
+              - LightGreen
+              - Green
+              - Blue
+              - Red
+              - Yellow
+              - Orange
+              - Cyan
+              - Pink
+  exclusion:
+    path: /api/audio/inputs/microphone/exclusionZones/{id}
+    schema:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        elevation:
+          type: object
+          properties:
+            min:
+              type: integer
+              minimum: 0
+              maximum: 90
+              multipleOf: 5
+              example: 0
+              description: Angle in degrees
+            max:
+              type: integer
+              minimum: 0
+              maximum: 90
+              multipleOf: 5
+              example: 10
+              description: Angle in degrees
+          required:
+          - min
+          - max
+        azimuth:
+          type: object
+          properties:
+            min:
+              type: integer
+              minimum: 0
+              maximum: 360
+              multipleOf: 5
+              example: 0
+              description: Angle in degrees
+            max:
+              type: integer
+              minimum: 0
+              maximum: 360
+              multipleOf: 5
+              example: 360
+              description: Angle in degrees
+          required:
+          - min
+          - max
+    ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+  priority:
+    path: /api/audio/inputs/microphone/priorityZones/{id}
+    schema:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        weight:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 4
+          multipleOf: 0.1
+          example: 1.5
+          description: Unitless multiplicator
+        elevation:
+          type: object
+          properties:
+            min:
+              type: integer
+              minimum: 0
+              maximum: 90
+              multipleOf: 5
+              example: 60
+              description: Angle in degrees
+            max:
+              type: integer
+              minimum: 0
+              maximum: 90
+              multipleOf: 5
+              example: 80
+              description: Angle in degrees
+          required:
+          - min
+          - max
+        azimuth:
+          type: object
+          properties:
+            min:
+              type: integer
+              minimum: 0
+              maximum: 360
+              multipleOf: 5
+              example: 160
+              description: Angle in degrees
+            max:
+              type: integer
+              minimum: 0
+              maximum: 360
+              multipleOf: 5
+              example: 200
+              description: Angle in degrees
+          required:
+          - min
+          - max
+    ids:
+    - 0
+telemetry:
+  direction: /api/audio/inputs/microphone/beam/direction
+  level: /api/audio/inputs/microphone/level
+factory_reset: null

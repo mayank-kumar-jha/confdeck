@@ -1,0 +1,23 @@
+metric,value
+engine,"""new"""
+speech_seconds,96.0
+correct_rate,0.9187500000000003
+wrong_rate,0.04374999999999981
+no_decision_rate,0.03749999999999978
+confusion_labels,"[""a"", ""b"", null]"
+confusion_seconds,"[[44.10000000000002, 2.0999999999999908, 1.7999999999999883], [2.0999999999999908, 44.10000000000002, 1.79999999999999], [2.6000000000000156, 1.8000000000000043, 67.59999999999998]]"
+per_seat_accuracy,"{""a"": 0.9187500000000003, ""b"": 0.9187500000000003}"
+angular_median,0.0
+angular_p90,0.0
+opposite_rate,0.04374999999999981
+switch_latency_median,0.649999999999995
+switch_latencies,"[0.5999999999999996, 0.6999999999999993, 0.6999999999999993, 0.6000000000000014, 0.5999999999999943, 0.7000000000000028, 0.7000000000000028, 0.5999999999999943, 0.5999999999999943, 0.6999999999999886, 0.6999999999999886, 0.5999999999999943]"
+missed_trials,0
+spurious_switches_per_min,0.0
+echo_false_trigger_rate,0.10833333333333399
+echo_trigger_trial_rate,0.0
+overlap_policy,"""excluded; preserve previous seat"""
+labelled_seconds,168.0
+provenance,"""Synthetic fixture; not a measurement of room accuracy"""
+settings,"{""engine"": ""legacy"", ""inference"": {""convention"": {""azimuth_zero"": 0, ""clockwise"": false, ""elevation_reference"": ""horizontal"", ""orientation_offset"": 0}, ""p_on"": 0.78, ""switch_p_on"": 0.9, ""evidence_floor_ms"": 250, ""p_off"": 0.35, ""margin"": 0.2, ""switch_probability"": 0.04, ""release_ms"": 600, ""energy_ms"": 200, ""noise_margin"": 8, ""parked_enabled"": true, ""parked_azimuth"": 315, ""parked_elevation"": 90, ""parked_tolerance"": 1, ""frozen_seconds"": 4, ""jump_degrees"": 100, ""opposite_multiplier"": 1.25, ""vision_weight"": 0.15, ""vision_veto_only"": false}, ""vision"": {""mode"": ""off"", ""camera_modes"": {}, ""rois"": [], ""llr_models"": {}, ""mouth_model"": """"}, ""profile"": ""Balanced"", ""confirm_ms"": 1000, ""min_hold_ms"": 3000, ""deadband_deg"": 8, ""zone_margin_deg"": 8, ""ema_alpha"": 0.25, ""median_n"": 1, ""elevation_min"": 0, ""elevation_max"": 90, ""activity_gate"": false, ""level_gate"": true, ""level_threshold"": -55, ""max_moves_per_min"": 12, ""settle_ms"": 1000, ""silence_ms"": 10000, ""preset_speed"": null, ""zones"": [{""components"": [], ""id"": ""a"", ""name"": ""A"", ""azimuth"": 20.0, ""elevation"": 20.0, ""radius"": 25, ""azimuth_range"": null, ""elevation_range"": null, ""scene_id"": """", ""presets"": {""mock"": ""1""}}, {""components"": [], ""id"": ""b"", ""name"": ""B"", ""azimuth"": 200.0, ""elevation"": 20.0, ""radius"": 25, ""azimuth_range"": null, ""elevation_range"": null, ""scene_id"": """", ""presets"": {""mock"": ""2""}}], ""wide_presets"": {""mock"": ""0""}}"
+session_id,"""synthetic-7-test"""

@@ -1,0 +1,20 @@
+[
+  {
+    "camera": "de6f408a7b0c",
+    "ip": "192.168.1.109",
+    "ok": true,
+    "probe": "Version/position inquiry replied"
+  },
+  {
+    "camera": "ea1d79d2ef66",
+    "ip": "192.168.1.106",
+    "ok": true,
+    "probe": "Version/position inquiry replied"
+  },
+  {
+    "camera": "604f8cd3d328",
+    "ip": "192.168.1.108",
+    "ok": true,
+    "probe": "Version/position inquiry replied"
+  }
+]
